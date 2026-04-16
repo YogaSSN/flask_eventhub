@@ -1,0 +1,43 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="header-flex">
+    <h1>Browse Events</h1>
+</div>
+
+<form class="filter-bar" method="GET" action="{{ url_for('student_events') }}">
+    <input type="text" name="search" class="form-control" placeholder="Search by event name..." value="{{ search_q }}">
+    <input type="date" name="date_filter" class="form-control" value="{{ date_f }}">
+    <button type="submit" class="btn">Filter</button>
+</form>
+
+<div class="events-grid">
+    {% for e in events %}
+    <div class="glass-card event-card">
+        <h3>{{ e.title }}</h3>
+        <p style="margin-bottom: 0.5rem;">{{ e.description }}</p>
+        <div class="meta-info">
+            <span>📅 Starts: {{ e.date_time }}</span>
+            <span>👨‍🏫 By: {{ e.faculty_name }}</span>
+            <span>👥 Seats Left: {{ e.seats_left }}</span>
+            <span>⏰ Closes: {{ e.deadline }}</span>
+        </div>
+        
+        <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05);">
+            {% if e.deadline_passed %}
+                <button class="btn btn-small" style="width: 100%; background: #475569; border: 1px solid #475569; cursor: not-allowed;" disabled>Registration Closed</button>
+            {% elif e.assigned_status %}
+                <button class="btn btn-small btn-outline" style="width: 100%; cursor: default;">Status: <span class="status-badge status-{{ e.assigned_status }}">{{ e.assigned_status }}</span></button>
+            {% elif e.seats_left <= 0 %}
+                <button class="btn btn-small" style="width: 100%; background: #475569; border: 1px solid #475569; cursor: not-allowed;" disabled>Event Full</button>
+            {% else %}
+                <form action="{{ url_for('student_register', event_id=e.id) }}" method="POST">
+                    <button class="btn btn-small" style="width: 100%;">Register Now</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <p style="color:#94a3b8;">No events match your criteria.</p>
+    {% endfor %}
+</div>
+{% endblock %}

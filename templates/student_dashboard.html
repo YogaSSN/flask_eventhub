@@ -1,0 +1,40 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="header-flex">
+    <h1>My Events Dashboard</h1>
+</div>
+
+<div class="stats-grid">
+    <div class="glass-card stat-card" style="max-width: 250px;">
+        <h3>{{ regs|length }}</h3>
+        <p>Total Registered Events</p>
+    </div>
+</div>
+
+<h3>My Registrations</h3>
+<div class="glass-card" style="padding: 1rem;">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr><th>Event Name</th><th>Date</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                {% for r in regs %}
+                <tr>
+                    <td>{{ r.title }}</td>
+                    <td>{{ r.date_time }}</td>
+                    <td><span class="status-badge status-{{ r.status }}">{{ r.status }}</span></td>
+                    <td>
+                        <form action="{{ url_for('student_cancel', reg_id=r.reg_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this registration?');">
+                            <button type="submit" class="btn btn-small btn-red">Cancel</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" style="text-align: center; color:#94a3b8;">You haven't registered for any events.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

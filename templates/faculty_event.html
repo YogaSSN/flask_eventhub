@@ -1,0 +1,48 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div>
+    <a href="{{ url_for('faculty_dashboard') }}" style="color: #94a3b8; text-decoration: none;">&larr; Back to Dashboard</a>
+    <h1>Event: {{ event.title }}</h1>
+    <p style="color: #cbd5e1;">Total Approved: {{ approved_count }} / {{ event.max_participants }} filled</p>
+    
+    <div class="header-flex" style="margin-top: 2rem;">
+        <h3>Registered Students</h3>
+        <a href="{{ url_for('faculty_event_export', event_id=event.id) }}" class="btn btn-outline btn-small">📥 Download CSV</a>
+    </div>
+    
+    <div class="glass-card" style="padding: 1rem;">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr><th>Student</th><th>Registration ID</th><th>Status</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                    {% for r in regs %}
+                    <tr>
+                        <td>{{ r.username }}</td>
+                        <td style="color: #94a3b8; font-size: 0.85rem;">{{ r.reg_id }}</td>
+                        <td><span class="status-badge status-{{ r.status }}">{{ r.status }}</span></td>
+                        <td>
+                            {% if r.status == 'Pending' %}
+                            <form action="{{ url_for('faculty_reg_decide', reg_id=r.reg_id) }}" method="POST" style="display:inline;">
+                                <input type="hidden" name="status" value="Approved">
+                                <button class="btn btn-small btn-green">Approve</button>
+                            </form>
+                            <form action="{{ url_for('faculty_reg_decide', reg_id=r.reg_id) }}" method="POST" style="display:inline;">
+                                <input type="hidden" name="status" value="Rejected">
+                                <button class="btn btn-small btn-red">Reject</button>
+                            </form>
+                            {% else %}
+                                <span style="color:#94a3b8; font-size:0.8rem;">Evaluated</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" style="text-align: center; color: #94a3b8;">No registrations.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

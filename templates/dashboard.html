@@ -1,0 +1,153 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="header-flex">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        <h1>Faculty Dashboard</h1>
+        <span class="status-badge status-Approved" style="font-size: 0.9rem;">Authenticated</span>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Left Column: Create Event Form -->
+    <div>
+        <div class="glass-card">
+            <h3 style="margin-top: 0;">Create New Event</h3>
+            <div class="form-group">
+                <label>Event Title</label>
+                <input type="text" id="ev_title" class="form-control" placeholder="e.g. Science Fair">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="ev_desc" class="form-control" rows="3" placeholder="A short description..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="ev_date" class="form-control">
+            </div>
+            <button class="btn" style="width: 100%;" onclick="createEvent()">Create Event</button>
+        </div>
+    </div>
+
+    <!-- Right Column: Approvals -->
+    <div>
+        <div class="glass-card">
+            <div class="header-flex" style="margin-bottom: 0;">
+                <h3 style="margin: 0;">Student Registrations</h3>
+                <button class="btn btn-small" style="background: rgba(255,255,255,0.1); color: #fff;" onclick="fetchRegistrations()">↻ Refresh</button>
+            </div>
+            <div class="table-container">
+                <table id="regsTable">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Event</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                        <tr><td colspan="4" style="text-align: center; color: #94a3b8;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Fetch registrations on load
+    document.addEventListener('DOMContentLoaded', fetchRegistrations);
+
+    async function fetchRegistrations() {
+        const tbody = document.querySelector('#regsTable tbody');
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8;">Loading...</td></tr>';
+        
+        try {
+            const res = await fetch('/registrations');
+            if (!res.ok) {
+                if(res.status === 401) window.location.href = '/login';
+                throw new Error('Failed to fetch');
+            }
+            const data = await res.json();
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8;">No registrations yet.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = data.map(r => `
+                <tr>
+                    <td style="font-weight: 500; color: #f8fafc;">${r.student_name}</td>
+                    <td style="color: #e2e8f0;">${r.event_title}</td>
+                    <td><span class="status-badge status-${r.status}">${r.status}</span></td>
+                    <td>
+                        ${r.status === 'Pending' ? `
+                            <button class="btn btn-small btn-green" onclick="updateStatus(${r.id}, 'Approved')" style="margin-right: 0.5rem; padding: 0.3rem 0.6rem;">Approve</button>
+                            <button class="btn btn-small btn-red" onclick="updateStatus(${r.id}, 'Rejected')" style="padding: 0.3rem 0.6rem;">Reject</button>
+                        ` : '<span style="color: #94a3b8; font-size: 0.85rem; font-style: italic;">Completed</span>'}
+                    </td>
+                </tr>
+            `).join('');
+            
+        } catch (err) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #ef4444;">Error loading data.</td></tr>';
+            showToast('Error loading registrations', true);
+        }
+    }
+
+    async function updateStatus(id, status) {
+        try {
+            const res = await fetch('/approve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, status })
+            });
+            
+            if (res.ok) {
+                showToast(`Registration ${status}`);
+                fetchRegistrations(); // Reload table
+            } else {
+                const err = await res.json();
+                showToast(err.error || 'Failed to update status', true);
+            }
+        } catch (error) {
+            showToast('Network error', true);
+        }
+    }
+
+    async function createEvent() {
+        const title = document.getElementById('ev_title').value.trim();
+        const desc = document.getElementById('ev_desc').value.trim();
+        const date = document.getElementById('ev_date').value;
+        
+        if (!title || !desc || !date) {
+            showToast('Please fill all event fields', true);
+            return;
+        }
+        
+        try {
+            const res = await fetch('/create-event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, description: desc, date })
+            });
+            const data = await res.json();
+            
+            if (res.ok) {
+                showToast('Event created successfully!');
+                document.getElementById('ev_title').value = '';
+                document.getElementById('ev_desc').value = '';
+                document.getElementById('ev_date').value = '';
+            } else {
+                showToast(data.error || 'Failed to create event', true);
+            }
+        } catch (err) {
+            showToast('Network error', true);
+        }
+    }
+</script>
+{% endblock %}

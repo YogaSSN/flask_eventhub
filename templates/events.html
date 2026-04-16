@@ -1,0 +1,69 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="header-flex">
+    <div>
+        <h1>Upcoming Events</h1>
+        <p style="color: #94a3b8;">Discover and register for the latest academic and extra-curricular events.</p>
+    </div>
+</div>
+
+{% if events|length == 0 %}
+<div class="glass-card" style="text-align: center; padding: 3rem;">
+    <h3 style="color: #94a3b8;">No events available right now.</h3>
+</div>
+{% else %}
+<div class="events-grid">
+    {% for event in events %}
+    <div class="glass-card event-card">
+        <span class="event-date">📅 {{ event.date }}</span>
+        <h3>{{ event.title }}</h3>
+        <p>{{ event.description }}</p>
+        
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05);">
+            {% set status = registrations.get(event.id) %}
+            
+            {% if status %}
+                <button class="btn btn-small" style="width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); cursor: default;">
+                    Registered <span class="status-badge status-{{ status }}" style="margin-left: 0.5rem; font-size: 0.75rem;">{{ status }}</span>
+                </button>
+            {% else %}
+                <button class="btn btn-small" style="width: 100%;" onclick="registerForEvent({{ event.id }})" id="btn_reg_{{ event.id }}">Register Now</button>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function registerForEvent(eventId) {
+        try {
+            const res = await fetch('/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ event_id: eventId })
+            });
+            const data = await res.json();
+            
+            if (res.ok) {
+                showToast('Registration successful! Status: Pending.');
+                // Update button visually
+                const btn = document.getElementById(`btn_reg_${eventId}`);
+                btn.innerHTML = 'Registered <span class="status-badge status-Pending" style="margin-left: 0.5rem; font-size: 0.75rem;">Pending</span>';
+                btn.style.background = 'transparent';
+                btn.style.border = '1px solid rgba(255,255,255,0.2)';
+                btn.onclick = null;
+                btn.style.cursor = 'default';
+            } else {
+                showToast(data.error || 'Failed to register.', true);
+            }
+        } catch (err) {
+            showToast('Network error.', true);
+        }
+    }
+</script>
+{% endblock %}

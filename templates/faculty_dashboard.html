@@ -1,0 +1,47 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="header-flex">
+    <h1>Faculty Dashboard</h1>
+</div>
+
+<div class="stats-grid">
+    <div class="glass-card stat-card">
+        <h3>{{ total_events }}</h3>
+        <p>My Events</p>
+    </div>
+    <div class="glass-card stat-card">
+        <h3>{{ total_regs }}</h3>
+        <p>Total Registrations</p>
+    </div>
+</div>
+
+<div class="header-flex" style="margin-top: 3rem;">
+    <h2>Manage Events</h2>
+    <a href="{{ url_for('faculty_event_create') }}" class="btn">+ Create New Event</a>
+</div>
+
+{% if events|length == 0 %}
+    <p style="color: #94a3b8;">You haven't created any events yet.</p>
+{% else %}
+    <div class="events-grid">
+        {% for e in events %}
+        <div class="glass-card event-card">
+            <h3>{{ e.title }}</h3>
+            <p style="flex-grow: 0; margin-bottom: 1rem;">{{ e.description }}</p>
+            <div class="meta-info">
+                <span>📅 Date: {{ e.date_time }}</span>
+                <span>📍 Venue: {{ e.venue }}</span>
+                <span>👥 Seats: {{ e.max_participants }}</span>
+                <span>⏰ Deadline: {{ e.deadline }}</span>
+            </div>
+            <div style="margin-top: auto; display: flex; gap: 0.5rem;">
+                <a href="{{ url_for('faculty_event_view', event_id=e.id) }}" class="btn btn-small" style="flex:1;">View Details</a>
+                <form action="{{ url_for('faculty_event_delete', event_id=e.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this event permenantly?');">
+                    <button type="submit" class="btn btn-small btn-red">Trash</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

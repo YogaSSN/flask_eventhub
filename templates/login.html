@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="auth-container">
+    <div class="glass-card">
+        <h2 style="text-align: center; margin-top: 0; color: #e2e8f0;">Welcome Back</h2>
+        <p style="text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 2rem;">Log in to your EventHub account</p>
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">Sign In</button>
+        </form>
+        <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: #94a3b8;">
+            Don't have an account? <a href="{{ url_for('signup') }}" style="color: #c084fc;">Register here</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

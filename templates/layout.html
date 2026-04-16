@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventHub | Event Management</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <nav>
+        <a href="{{ url_for('home') }}" class="brand">🚀 EventHub</a>
+        <div class="links">
+            {% if session.get('user_id') %}
+                <a href="{{ url_for('profile') }}" style="color: #cbd5e1;">👤 Profile</a>
+                
+                {% if session.get('role') == 'faculty' %}
+                    <a href="{{ url_for('faculty_dashboard') }}" style="color: #c084fc; font-weight: 600;">Dash</a>
+                {% else %}
+                    <a href="{{ url_for('student_events') }}">Browse</a>
+                    <a href="{{ url_for('student_dashboard') }}" style="color: #c084fc; font-weight: 600;">My Events</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('signup') }}" style="color: #6ee7b7; font-weight: 600;">Sign Up</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Notification Simulation -->
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+        </div>
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
